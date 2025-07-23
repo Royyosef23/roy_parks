@@ -2,19 +2,14 @@
 
 ## דרכים לעלות שינויים לגיטהאב:
 
-### דרך 1: שימוש בסקריפט PowerShell (הכי פשוט)
-```powershell
-.\upload_to_github.ps1
-```
-
-### דרך 2: פקודות Git ידניות
+### דרך 1: פקודות Git ידניות
 ```bash
 git add .
 git commit -m "תיאור השינוי שלך"
 git push origin master
 ```
 
-### דרך 3: דרך VS Code
+### דרך 2: דרך VS Code
 1. לחץ על Source Control בצד שמאל (Ctrl+Shift+G)
 2. כתוב הודעת commit בתיבה
 3. לחץ על ✓ (Commit)
