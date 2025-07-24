@@ -1,0 +1,70 @@
+להלן דיאגרמת ארכיטקטורת ה‑data flow של פלטפורמת ParkBnB, ב‑Mermaid:
+
+mermaid
+Copy
+Edit
+flowchart TD
+    subgraph Client
+        U[דפדפן משתמש]
+    end
+
+    subgraph CDN/Reverse Proxy
+        N[Nginx]
+    end
+
+    subgraph Frontend
+        F[React.js App]
+    end
+
+    subgraph Backend
+        APIServer[Express API Server]
+        Auth[Authentication (JWT)]
+        Cache[Redis Cache]
+        Queue[Task Queue]
+    end
+
+    subgraph Database
+        PG[(PostgreSQL)]
+    end
+
+    subgraph External Services
+        Stripe[Stripe Payment]
+        Cloudinary[Cloudinary Image Storage]
+    end
+
+    U -->|HTTP/HTTPS| N
+    N -->|Static Assets| F
+    F -->|API Calls| N
+    N -->|Proxy| APIServer
+
+    APIServer -->|ORM (Prisma)| PG
+    APIServer -->|Cache R/W| Cache
+    APIServer -->|Validate Token| Auth
+    APIServer -->|Enqueue Jobs| Queue
+
+    Queue -->|Image Processing| Cloudinary
+    APIServer -->|Charge| Stripe
+הסבר קצר על הזרימה
+
+Client → Nginx → Frontend:
+הדפדפן מבקש קבצים סטטיים (JS, CSS) מ־Nginx, שמחזיר את אפליקציית ה‑React.
+
+Frontend → Nginx → Backend:
+קריאות API מ‑React מועברות ל־Express דרך ה‑reverse proxy של Nginx.
+
+Backend → Database:
+Express משתמש ב‑Prisma לכתיבה וקריאה מ‑PostgreSQL.
+
+Backend → Redis:
+קריאות תדירות מטמון בתקשורת עם Redis בשביל ביצועים משופרים.
+
+Backend → JWT Auth:
+Middleware בודק ומאמת את ה‑token שב‑request.
+
+Backend → Task Queue → Cloudinary:
+משימות כבדות (כמו העלאת תמונות) נכנסות לתור ומבוצעות מאוחרת יותר, מעובדות ב‑Cloudinary.
+
+Backend → Stripe:
+הפרוסס של תשלום מתבצע ישירות מול Stripe API.
+
+כך מתקבל separation of concerns, scalability ויכולת לתחזק ולהרחיב כל רכיב בנפרד.

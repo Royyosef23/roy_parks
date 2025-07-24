@@ -7,7 +7,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index';
+import { prisma } from '../prisma';
 import { asyncHandler, createError } from '../middleware/errorHandler';
 import { sendEmail } from '../services/emailService';
 
@@ -17,10 +17,13 @@ import { sendEmail } from '../services/emailService';
  * @returns JWT token
  */
 const generateToken = (userId: string): string => {
+  const secret: string = process.env.JWT_SECRET || 'your-secret-key';
+  const expiresIn: string = process.env.JWT_EXPIRES_IN || '7d';
+  
   return jwt.sign(
     { userId }, 
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    secret,
+    { expiresIn } as jwt.SignOptions
   );
 };
 
@@ -204,17 +207,19 @@ const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
 
   if (!user) {
     // מסיבות אבטחה, נחזיר הודעה זהה גם אם המשתמש לא קיים
-    return res.json({
+    res.json({
       success: true,
       message: 'If this email exists, a reset link will be sent'
     });
+    return;
   }
 
   // יצירת token לאיפוס סיסמה
+  const secret: string = process.env.JWT_SECRET || 'your-secret-key';
   const resetToken = jwt.sign(
     { userId: user.id, type: 'password-reset' },
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: '1h' }
+    secret,
+    { expiresIn: '1h' } as jwt.SignOptions
   );
 
   // שליחת מייל עם לינק לאיפוס
@@ -247,7 +252,8 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
   const { token, newPassword } = req.body;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    const secret: string = process.env.JWT_SECRET || 'your-secret-key';
+    const decoded = jwt.verify(token, secret) as any;
     
     if (decoded.type !== 'password-reset') {
       throw createError('Invalid reset token', 400);
@@ -280,7 +286,8 @@ const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const { token } = req.body;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    const secret: string = process.env.JWT_SECRET || 'your-secret-key';
+    const decoded = jwt.verify(token, secret) as any;
     
     if (decoded.type !== 'email-verification') {
       throw createError('Invalid verification token', 400);

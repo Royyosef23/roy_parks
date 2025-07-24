@@ -1,0 +1,63 @@
+# ParkBnB API Tests
+# Use REST Client extension in VS Code to run these tests
+
+### Health Check
+GET http://localhost:3001/health
+
+###
+
+### Register New User
+POST http://localhost:3001/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "Test123456",
+  "firstName": "Roy",
+  "lastName": "Test",
+  "phone": "0541234567"
+}
+
+###
+
+### Login User
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "Test123456"
+}
+
+###
+
+### Get Current User (requires auth)
+# Replace YOUR_JWT_TOKEN with actual token from login
+GET http://localhost:3001/api/v1/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWRnOWt0MnIwMDAwdG00OXRieTA5YW5rIiwiaWF0IjoxNzUzMjkzMzM4LCJleHAiOjE3NTM4OTgxMzh9.a4dzlMhI6bOuR8R8Wfm8itmsV1k5I1NiP4NL2PIredI
+
+###
+
+### Get All Buildings
+GET http://localhost:3001/api/v1/buildings
+
+###
+
+### Get All Parking Spots
+GET http://localhost:3001/api/v1/parking
+
+###
+
+### PowerShell Commands for Testing
+
+# Health Check
+# Invoke-RestMethod -Uri "http://localhost:3001/health" -Method GET
+
+# Register User
+# Invoke-RestMethod -Uri "http://localhost:3001/api/v1/auth/register" -Method POST -ContentType "application/json" -Body '{"email":"test@example.com","password":"Test123456","firstName":"Roy","lastName":"Test","phone":"0541234567"}'
+
+# Login User  
+# Invoke-RestMethod -Uri "http://localhost:3001/api/v1/auth/login" -Method POST -ContentType "application/json" -Body '{"email":"test@example.com","password":"Test123456"}'
+
+# Using curl.exe (if available)
+# curl.exe -X POST "http://localhost:3001/api/v1/auth/register" -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"Test123456","firstName":"Roy","lastName":"Test","phone":"0541234567"}'

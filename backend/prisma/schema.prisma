@@ -1,0 +1,213 @@
+// מסד הנתונים - Prisma Schema
+// קובץ זה מגדיר את המבנה של כל הטבלאות במסד הנתונים
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// טבלת משתמשים - כל מי שנרשם לפלטפורמה
+model User {
+  id          String   @id @default(cuid()) // מזהה ייחודי
+  email       String   @unique              // אימייל - חייב להיות ייחודי
+  password    String                       // סיסמה מוצפנת
+  firstName   String                       // שם פרטי  
+  lastName    String                       // שם משפחה
+  phone       String?                      // טלפון (אופציונלי)
+  avatar      String?                      // תמונת פרופיל (אופציונלי)
+  role        UserRole @default(RENTER)    // תפקיד - שוכר/משכיר/אדמין
+  verified    Boolean  @default(false)     // האם האימייל מאומת
+  createdAt   DateTime @default(now())     // תאריך הרשמה
+  updatedAt   DateTime @updatedAt          // תאריך עדכון אחרון
+
+  // קשרים לטבלאות אחרות
+  ownedBuildings Building[] @relation("BuildingOwner") // הבניינים שיש לו
+  bookings       Booking[]  @relation("UserBookings")  // ההזמנות שלו
+  reviews        Review[]   @relation("UserReviews")   // הביקורות שכתב
+
+  @@map("users") // שם הטבלה במסד הנתונים
+}
+
+// סוגי משתמשים
+enum UserRole {
+  RENTER    // שוכר - מחפש חנייה
+  OWNER     // בעלים - משכיר חניות  
+  ADMIN     // אדמין - מנהל הפלטפורמה
+}
+
+// טבלת בניינים - בניינים עם חניות להשכרה
+model Building {
+  id          String   @id @default(cuid())
+  name        String                       // שם הבניין
+  address     String                       // כתובת מלאה
+  city        String                       // עיר
+  zipCode     String                       // מיקוד
+  description String?                      // תיאור הבניין
+  images      String[]                     // תמונות הבניין
+  lat         Float?                       // קו רוחב (למפה)
+  lng         Float?                       // קו אורך (למפה)
+  
+  // שעות פעילות
+  openTime    String   @default("00:00")   // שעת פתיחה
+  closeTime   String   @default("23:59")   // שעת סגירה
+  
+  // מידע על הבעלים
+  ownerId     String                       // מזהה הבעלים
+  owner       User     @relation("BuildingOwner", fields: [ownerId], references: [id])
+  
+  active      Boolean  @default(true)      // האם הבניין פעיל
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // קשרים
+  parkingSpots ParkingSpot[] @relation("BuildingSpots") // החניות בבניין
+  
+  @@map("buildings")
+}
+
+// טבלת חניות - חניות ספציפיות בבניין
+model ParkingSpot {
+  id          String      @id @default(cuid())
+  spotNumber  String                      // מספר החנייה (למשל "A-15")
+  floor       Int?                        // קומה (אם רלוונטי)
+  size        SpotSize    @default(REGULAR) // גודל החנייה
+  type        SpotType    @default(OUTDOOR) // סוג החנייה
+  description String?                     // תיאור נוסף
+  images      String[]                    // תמונות החנייה
+  
+  // מחירים
+  hourlyRate  Float                       // מחיר לשעה
+  dailyRate   Float                       // מחיר ליום
+  
+  // מידע על הבניין
+  buildingId  String
+  building    Building    @relation("BuildingSpots", fields: [buildingId], references: [id])
+  
+  available   Boolean     @default(true)  // האם זמינה כרגע
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // קשרים
+  bookings    Booking[]   @relation("SpotBookings") // הזמנות החנייה
+  reviews     Review[]    @relation("SpotReviews")  // ביקורות החנייה
+  
+  @@map("parking_spots")
+}
+
+// גדלי חניות
+enum SpotSize {
+  COMPACT   // קטנה - לרכבים קטנים
+  REGULAR   // רגילה - לרכבים רגילים
+  LARGE     // גדולה - לרכבים גדולים/ג'יפים
+}
+
+// סוגי חניות  
+enum SpotType {
+  OUTDOOR   // חיצונית
+  COVERED   // מקורה
+  GARAGE    // מוסך סגור
+}
+
+// טבלת הזמנות - הזמנות חניות
+model Booking {
+  id          String        @id @default(cuid())
+  
+  // מי ומה
+  userId      String                      // מי הזמין
+  user        User          @relation("UserBookings", fields: [userId], references: [id])
+  spotId      String                      // איזו חנייה
+  spot        ParkingSpot   @relation("SpotBookings", fields: [spotId], references: [id])
+  
+  // זמנים
+  startDate   DateTime                    // תחילת החנייה
+  endDate     DateTime                    // סיום החנייה
+  
+  // כספים
+  totalPrice  Float                       // מחיר כולל
+  commission  Float         @default(0)   // עמלה לפלטפורמה
+  
+  // סטטוס
+  status      BookingStatus @default(PENDING) // מצב ההזמנה
+  
+  // פרטים נוספים
+  notes       String?                     // הערות מיוחדות
+  carModel    String?                     // דגם הרכב
+  licensePlate String?                    // מספר רישוי
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // קשרים
+  payment     Payment?      @relation("BookingPayment") // התשלום
+  
+  @@map("bookings")
+}
+
+// סטטוסי הזמנות
+enum BookingStatus {
+  PENDING     // ממתין לאישור
+  CONFIRMED   // מאושר
+  ACTIVE      // פעיל (המשתמש עכשיו בחנייה)
+  COMPLETED   // הושלם
+  CANCELLED   // בוטל
+}
+
+// טבלת תשלומים
+model Payment {
+  id          String        @id @default(cuid())
+  
+  bookingId   String        @unique         // הזמנה שאליה שייך התשלום
+  booking     Booking       @relation("BookingPayment", fields: [bookingId], references: [id])
+  
+  amount      Float                        // סכום התשלום
+  method      PaymentMethod                // אמצעי תשלום
+  status      PaymentStatus @default(PENDING) // סטטוס התשלום
+  
+  // פרטי התשלום החיצוני (Stripe/PayPal וכו')
+  externalId  String?                      // מזהה בחברת האשראי
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD  // כרטיס אשראי
+  PAYPAL       // PayPal
+  BANK_TRANSFER // העברה בנקאית
+  CASH         // מזומן
+}
+
+enum PaymentStatus {
+  PENDING    // ממתין
+  COMPLETED  // הושלם
+  FAILED     // נכשל
+  REFUNDED   // הוחזר
+}
+
+// טבלת ביקורות ודירוגים
+model Review {
+  id        String   @id @default(cuid())
+  
+  // מי וחנייה כתב ביקורת על איזו
+  userId    String
+  user      User     @relation("UserReviews", fields: [userId], references: [id])
+  spotId    String  
+  spot      ParkingSpot @relation("SpotReviews", fields: [spotId], references: [id])
+  
+  // הביקורת עצמה
+  rating    Int                           // דירוג 1-5 כוכבים
+  comment   String?                       // טקסט הביקורת
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // ביקורת אחת למשתמש לכל חנייה
+  @@unique([userId, spotId])
+  @@map("reviews")
+}

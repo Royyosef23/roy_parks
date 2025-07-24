@@ -13,9 +13,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-
-// ייבוא חיבור למסד הנתונים
-import { connectDatabase, disconnectDatabase } from './prisma';
+import { PrismaClient } from '@prisma/client';
 
 // ייבוא הroutes שלנו
 import authRoutes from './routes/auth';
@@ -33,6 +31,9 @@ dotenv.config();
 
 // יצירת instance של Express
 const app = express();
+
+// יצירת instance של Prisma (מסד הנתונים)
+export const prisma = new PrismaClient();
 
 // הגדרת פורט השרת
 const PORT = process.env.PORT || 3001;
@@ -94,8 +95,9 @@ app.use(errorHandler);
  */
 async function startServer() {
   try {
-    // חיבור למסד הנתונים
-    await connectDatabase();
+    // בדיקת חיבור למסד הנתונים
+    await prisma.$connect();
+    console.log('✅ Connected to database successfully');
 
     // הפעלת השרת
     app.listen(PORT, () => {
@@ -113,13 +115,13 @@ async function startServer() {
 // טיפול באירועי סגירת התהליך
 process.on('SIGTERM', async () => {
   console.log('🔄 SIGTERM received, shutting down gracefully');
-  await disconnectDatabase();
+  await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('🔄 SIGINT received, shutting down gracefully');
-  await disconnectDatabase();
+  await prisma.$disconnect();
   process.exit(0);
 });
 
