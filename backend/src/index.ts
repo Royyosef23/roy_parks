@@ -12,10 +12,9 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 
-// ייבוא חיבור למסד הנתונים
-import { connectDatabase, disconnectDatabase } from './prisma';
+// ייבוא הגדרות המערכת
+import { ENV, initializeConfig, shutdownConfig } from './config';
 
 // ייבוא הroutes שלנו
 import authRoutes from './routes/auth';
@@ -28,14 +27,8 @@ import bookingRoutes from './routes/bookings';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './middleware/logger';
 
-// טעינת משתני סביבה מקובץ .env
-dotenv.config();
-
 // יצירת instance של Express
 const app = express();
-
-// הגדרת פורט השרת
-const PORT = process.env.PORT || 3001;
 
 /**
  * Middleware-ים גלובליים
@@ -47,13 +40,22 @@ app.use(helmet());
 
 // הגדרת CORS - מאפשר לfrontend להתחבר
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: ENV.CORS_ORIGIN,
   credentials: true
 }));
 
 // פרסור JSON ו-URL encoded
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// middleware לדיבוג בקשות
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path}`);
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log('   Body:', req.body);
+  }
+  next();
+});
 
 // לוגים לכל בקשה
 app.use(logger);
@@ -67,7 +69,8 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'ParkBnB API is running!',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: ENV.NODE_ENV
   });
 });
 
@@ -94,14 +97,14 @@ app.use(errorHandler);
  */
 async function startServer() {
   try {
-    // חיבור למסד הנתונים
-    await connectDatabase();
+    // אתחול הגדרות המערכת
+    await initializeConfig();
 
     // הפעלת השרת
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📖 API Documentation: http://localhost:${PORT}/health`);
-      console.log(`🏗️  Environment: ${process.env.NODE_ENV || 'development'}`);
+    app.listen(ENV.PORT, () => {
+      console.log(`🚀 Server is running on port ${ENV.PORT}`);
+      console.log(`📖 API Documentation: http://localhost:${ENV.PORT}/health`);
+      console.log(`🏗️  Environment: ${ENV.NODE_ENV}`);
     });
 
   } catch (error) {
@@ -113,13 +116,13 @@ async function startServer() {
 // טיפול באירועי סגירת התהליך
 process.on('SIGTERM', async () => {
   console.log('🔄 SIGTERM received, shutting down gracefully');
-  await disconnectDatabase();
+  await shutdownConfig();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('🔄 SIGINT received, shutting down gracefully');
-  await disconnectDatabase();
+  await shutdownConfig();
   process.exit(0);
 });
 

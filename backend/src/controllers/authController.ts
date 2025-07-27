@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../prisma';
 import { asyncHandler, createError } from '../middleware/errorHandler';
-import { sendEmail } from '../services/emailService';
+// import { sendEmail } from '../services/emailService'; // זמנית מבוטל
 
 /**
  * יצירת JWT Token
@@ -32,7 +32,27 @@ const generateToken = (userId: string): string => {
  * POST /api/v1/auth/register
  */
 const register = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password, firstName, lastName, phone, role } = req.body;
+  const { email, password, firstName, lastName, phone, role, buildingCode } = req.body;
+
+  // לוג לדיבוג
+  console.log('📝 Registration attempt:', { 
+    email, 
+    firstName, 
+    lastName, 
+    phone, 
+    role, 
+    buildingCode,
+    hasPassword: !!password 
+  });
+
+  // וולידציה בסיסית
+  if (!email || !password || !firstName || !lastName || !buildingCode) {
+    throw createError('Missing required fields', 400);
+  }
+
+  if (!['RENTER', 'OWNER'].includes(role)) {
+    throw createError('Invalid role', 400);
+  }
 
   // בדיקה אם המשתמש כבר קיים
   const existingUser = await prisma.user.findUnique({
@@ -55,6 +75,7 @@ const register = asyncHandler(async (req: Request, res: Response) => {
       lastName,
       phone,
       role: role || 'RENTER'
+      // TODO: הוסף buildingCode כשהסכימה תתעדכן
     },
     select: {
       id: true,
@@ -73,12 +94,16 @@ const register = asyncHandler(async (req: Request, res: Response) => {
 
   // שליחת מייל אימות (אופציונלי)
   try {
+    // TODO: הוסף שליחת מייל כאשר השירות יהיה מוכן
+    console.log(`📧 Welcome email should be sent to: ${user.email}`);
+    /*
     await sendEmail({
       to: user.email,
       subject: 'Welcome to ParkBnB!',
       template: 'welcome',
       data: { firstName: user.firstName }
     });
+    */
   } catch (error) {
     console.error('Failed to send welcome email:', error);
   }
@@ -99,6 +124,16 @@ const register = asyncHandler(async (req: Request, res: Response) => {
  */
 const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
+
+  // לוג לדיבוג
+  console.log('🔐 Login attempt:', { 
+    email, 
+    hasPassword: !!password 
+  });
+
+  if (!email || !password) {
+    throw createError('Email and password are required', 400);
+  }
 
   // חיפוש המשתמש
   const user = await prisma.user.findUnique({
@@ -224,6 +259,9 @@ const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
 
   // שליחת מייל עם לינק לאיפוס
   try {
+    // TODO: הוסף שליחת מייל כאשר השירות יהיה מוכן
+    console.log(`📧 Reset password email should be sent to: ${user.email}`);
+    /*
     await sendEmail({
       to: user.email,
       subject: 'Reset Your Password',
@@ -233,6 +271,7 @@ const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
         resetLink: `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
       }
     });
+    */
   } catch (error) {
     console.error('Failed to send reset email:', error);
     throw createError('Failed to send reset email', 500);
