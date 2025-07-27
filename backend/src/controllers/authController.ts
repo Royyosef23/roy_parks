@@ -34,17 +34,6 @@ const generateToken = (userId: string): string => {
 const register = asyncHandler(async (req: Request, res: Response) => {
   const { email, password, firstName, lastName, phone, role, buildingCode } = req.body;
 
-  // לוג לדיבוג
-  console.log('📝 Registration attempt:', { 
-    email, 
-    firstName, 
-    lastName, 
-    phone, 
-    role, 
-    buildingCode,
-    hasPassword: !!password 
-  });
-
   // וולידציה בסיסית
   if (!email || !password || !firstName || !lastName || !buildingCode) {
     throw createError('Missing required fields', 400);
@@ -126,7 +115,7 @@ const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   // לוג לדיבוג
-  console.log('🔐 Login attempt:', { 
+  console.log('Login attempt:', { 
     email, 
     hasPassword: !!password 
   });

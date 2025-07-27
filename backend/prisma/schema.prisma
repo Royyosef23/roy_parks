@@ -21,13 +21,17 @@ model User {
   avatar      String?                      // תמונת פרופיל (אופציונלי)
   role        UserRole @default(RENTER)    // תפקיד - שוכר/משכיר/אדמין
   verified    Boolean  @default(false)     // האם האימייל מאומת
+  points      Int      @default(0)         // נקודות המשתמש
   createdAt   DateTime @default(now())     // תאריך הרשמה
   updatedAt   DateTime @updatedAt          // תאריך עדכון אחרון
 
   // קשרים לטבלאות אחרות
-  ownedBuildings Building[] @relation("BuildingOwner") // הבניינים שיש לו
-  bookings       Booking[]  @relation("UserBookings")  // ההזמנות שלו
-  reviews        Review[]   @relation("UserReviews")   // הביקורות שכתב
+  ownedBuildings  Building[]       @relation("BuildingOwner") // הבניינים שיש לו
+  ownedSpots      ParkingSpot[]    @relation("UserParkingSpots") // החניות שלו
+  bookings        Booking[]        @relation("UserBookings")  // ההזמנות שלו
+  reviews         Review[]         @relation("UserReviews")   // הביקורות שכתב
+  parkingClaim    ParkingClaim?    @relation("UserParkingClaim") // בקשת אישור חנייה
+  pointHistory    PointTransaction[] @relation("UserPointHistory") // היסטוריית נקודות
 
   @@map("users") // שם הטבלה במסד הנתונים
 }
@@ -87,7 +91,12 @@ model ParkingSpot {
   buildingId  String
   building    Building    @relation("BuildingSpots", fields: [buildingId], references: [id])
   
-  available   Boolean     @default(true)  // האם זמינה כרגע
+  // סטטוס אישור וזמינות
+  approved    Boolean     @default(false) // האם אושרה ע"י ועד הבית
+  available   Boolean     @default(false) // האם זמינה כרגע
+  ownerId     String?                     // בעלים של החנייה
+  owner       User?       @relation("UserParkingSpots", fields: [ownerId], references: [id])
+  
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -209,5 +218,63 @@ model Review {
   
   // ביקורת אחת למשתמש לכל חנייה
   @@unique([userId, spotId])
+
   @@map("reviews")
+}
+
+// טבלת בקשות אישור חניות - לוועד הבית
+model ParkingClaim {
+  id           String      @id @default(cuid())
+  userId       String      @unique              // משתמש יכול להגיש בקשה אחת בלבד
+  user         User        @relation("UserParkingClaim", fields: [userId], references: [id])
+  
+  // פרטי החנייה בחניון תת-קרקעי בפאדובה 32
+  floor        String                          // "-1", "-2", או "-3" 
+  spotNumber   String                          // מספר חנייה (1-999)
+  additionalInfo String?                       // מידע נוסף מהמבקש
+  
+  // סטטוס הבקשה
+  status       ClaimStatus @default(PENDING)   // PENDING | APPROVED | REJECTED
+  
+  // פרטי האישור/דחייה
+  approvedBy   String?                         // מזהה מי אישר (ועד הבית)
+  approvedAt   DateTime?                       // מתי אושר
+  rejectedAt   DateTime?                       // מתי נדחה
+  rejectReason String?                         // סיבת דחייה
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // מניעת כפילות של אותה חנייה
+  @@unique([floor, spotNumber])
+  @@map("parking_claims")
+}
+
+// סטטוסי בקשות אישור
+enum ClaimStatus {
+  PENDING   // ממתין לאישור
+  APPROVED  // אושר על ידי ועד הבית
+  REJECTED  // נדחה על ידי ועד הבית
+}
+
+// טבלת היסטוריית נקודות
+model PointTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserPointHistory", fields: [userId], references: [id])
+  
+  amount    Int                               // כמות נקודות (חיובי/שלילי)
+  reason    String                            // סיבת השינוי
+  type      TransactionType                   // סוג העסקה
+  
+  createdAt DateTime @default(now())
+
+  @@map("point_transactions")
+}
+
+// סוגי עסקאות נקודות
+enum TransactionType {
+  EARNED_PARKING_APPROVAL   // קיבל נקודות על אישור חנייה
+  SPENT_ON_PARKING         // הוציא נקודות על חנייה
+  ADMIN_ADJUSTMENT         // תיקון מנהל
 }

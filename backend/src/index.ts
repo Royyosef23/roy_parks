@@ -22,6 +22,7 @@ import userRoutes from './routes/users';
 import buildingRoutes from './routes/buildings';
 import parkingRoutes from './routes/parking';
 import bookingRoutes from './routes/bookings';
+import parkingClaimsRoutes from './routes/parkingClaims';
 
 // ייבוא middleware-ים
 import { errorHandler } from './middleware/errorHandler';
@@ -80,6 +81,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/buildings', buildingRoutes);
 app.use('/api/v1/parking', parkingRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/parking-claims', parkingClaimsRoutes);
 
 // נתיב לטיפול ב-404
 app.use('*', (req, res) => {

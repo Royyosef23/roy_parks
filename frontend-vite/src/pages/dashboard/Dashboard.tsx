@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -55,7 +57,7 @@ export const Dashboard: React.FC = () => {
                         הבניין שלי
                       </dt>
                       <dd className="text-lg font-medium text-gray-900">
-                        {user.buildingId || 'לא הוגדר'}
+                        פאדובה 32, תל אביב
                       </dd>
                     </dl>
                   </div>
@@ -63,6 +65,32 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* כרטיס נקודות */}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <span className="text-2xl">💎</span>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        הנקודות שלי
+                      </dt>
+                      <dd className="text-2xl font-bold text-blue-600">
+                        {(user as any).points || 0} נקודות
+                      </dd>
+                      <dd className="text-xs text-gray-500">
+                        שווה ל-{Math.floor(((user as any).points || 0) / 5)} שעות חנייה
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 mt-6">
             {/* כרטיס פעולות מהירות */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-5">
@@ -76,22 +104,55 @@ export const Dashboard: React.FC = () => {
                         פעולות מהירות
                       </dt>
                       <dd className="mt-2 space-y-2">
-                        {user.role === 'OWNER' ? (
+                        {user.role === 'ADMIN' ? (
                           <>
-                            <button className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                              ➕ הוסף חנייה חדשה
+                            <button 
+                              onClick={() => navigate('/vaad-management')}
+                              className="block w-full text-left px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded transition-colors font-medium"
+                            >
+                               🏢 ניהול בקשות אישור חניות
                             </button>
-                            <button className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                              📊 צפה בהזמנות
+                            <button 
+                              onClick={() => navigate('/admin-dashboard')}
+                              className="block w-full text-left px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                            >
+                               📊 דשבורד ניהול
+                            </button>
+                          </>
+                        ) : user.role === 'OWNER' ? (
+                          <>
+                            <button 
+                              onClick={() => navigate('/add-parking')}
+                              className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            >
+                               הוסף חנייה חדשה
+                            </button>
+                            <button 
+                              onClick={() => navigate('/my-parkings')}
+                              className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            >
+                               הניהול שלי
+                            </button>
+                            <button 
+                              onClick={() => navigate('/reservations')}
+                              className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            >
+                               צפה בהזמנות
                             </button>
                           </>
                         ) : (
                           <>
-                            <button className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                              🔍 חפש חנייה
+                            <button 
+                              onClick={() => navigate('/search-parking')}
+                              className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            >
+                               חפש חנייה
                             </button>
-                            <button className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                              📅 ההזמנות שלי
+                            <button 
+                              onClick={() => navigate('/my-reservations')}
+                              className="block w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            >
+                               ההזמנות שלי
                             </button>
                           </>
                         )}
