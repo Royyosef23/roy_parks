@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { asyncHandler } from '../middleware/errorHandler';
 import { createError } from '../middleware/errorHandler';
+import { prisma } from '../config/database';
 
 // הרחבת ממשק Request כדי לכלול user
 interface AuthenticatedRequest extends Request {
@@ -11,8 +11,6 @@ interface AuthenticatedRequest extends Request {
     role: string;
   };
 }
-
-const prisma = new PrismaClient();
 
 /**
  * הוספת חנייה חדשה
@@ -36,13 +34,13 @@ export const addParkingSpot = asyncHandler(async (req: AuthenticatedRequest, res
     throw createError('Authentication required', 401);
   }
 
-  // בדיקה שהמשתמש הוא OWNER
+  // בדיקה שהמשתמש מאומת ויכול להציע חניות
   const user = await prisma.user.findUnique({
     where: { id: userId }
   });
 
-  if (!user || user.role !== 'OWNER') {
-    throw createError('Only building owners can add parking spots', 403);
+  if (!user || !user.verified) {
+    throw createError('Only verified residents can add parking spots', 403);
   }
 
   // בדיקה שהבניין קיים ושייך למשתמש
@@ -118,30 +116,40 @@ export const getMyParkingSpots = asyncHandler(async (req: AuthenticatedRequest, 
     throw createError('Authentication required', 401);
   }
 
-  const spots = await prisma.parkingSpot.findMany({
-    where: {
-      building: {
-        ownerId: userId
-      }
-    },
-    include: {
-      building: {
-        select: {
-          id: true,
-          name: true,
-          address: true
-        }
-      },
-      _count: {
-        select: {
-          bookings: true
-        }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
+  // קבלת החניות שבבעלות המשתמש באמצעות raw SQL
+  const rawSpots = await prisma.$queryRaw`
+    SELECT 
+      ps.*,
+      b.id as building_id,
+      b.name as building_name,
+      b.address as building_address
+    FROM parking_spots ps
+    JOIN buildings b ON ps."buildingId" = b.id
+    WHERE ps."ownerId" = ${userId}
+    ORDER BY ps."createdAt" DESC
+  ` as any[];
+
+  // המרה לפורמט הנדרש
+  const spots = rawSpots.map(spot => ({
+    id: spot.id,
+    spotNumber: spot.spotNumber,
+    floor: spot.floor,
+    size: spot.size,
+    type: spot.type,
+    description: spot.description,
+    images: spot.images,
+    hourlyRate: spot.hourlyRate,
+    dailyRate: spot.dailyRate,
+    available: spot.available,
+    approved: spot.approved,
+    createdAt: spot.createdAt,
+    updatedAt: spot.updatedAt,
+    building: {
+      id: spot.building_id,
+      name: spot.building_name,
+      address: spot.building_address
     }
-  });
+  }));
 
   res.json({
     success: true,

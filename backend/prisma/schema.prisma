@@ -19,9 +19,15 @@ model User {
   lastName    String                       // שם משפחה
   phone       String?                      // טלפון (אופציונלי)
   avatar      String?                      // תמונת פרופיל (אופציונלי)
-  role        UserRole @default(RENTER)    // תפקיד - שוכר/משכיר/אדמין
+  role        UserRole @default(RESIDENT)  // תפקיד - דייר/אדמין
   verified    Boolean  @default(false)     // האם האימייל מאומת
   points      Int      @default(0)         // נקודות המשתמש
+  
+  // שדות חדשים לזכויות דינמיות
+  buildingApproved Boolean @default(false) // האם אושר ע"י ועד הבית כדייר
+  apartmentNumber String?                  // מספר דירה (לאימות)
+  floor           Int?                     // קומה (לאימות)
+  
   createdAt   DateTime @default(now())     // תאריך הרשמה
   updatedAt   DateTime @updatedAt          // תאריך עדכון אחרון
 
@@ -38,9 +44,8 @@ model User {
 
 // סוגי משתמשים
 enum UserRole {
-  RENTER    // שוכר - מחפש חנייה
-  OWNER     // בעלים - משכיר חניות  
-  ADMIN     // אדמין - מנהל הפלטפורמה
+  RESIDENT  // דייר - יכול להיות גם משכיר וגם שוכר
+  ADMIN     // אדמין - מנהל הפלטפורמה וועד הבית
 }
 
 // טבלת בניינים - בניינים עם חניות להשכרה

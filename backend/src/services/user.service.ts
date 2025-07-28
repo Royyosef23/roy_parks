@@ -46,7 +46,7 @@ export class UserService {
       firstName: validatedData.firstName,
       lastName: validatedData.lastName,
       phone: validatedData.phone,
-      role: validatedData.role
+      role: validatedData.role as any
     });
 
     // יצירת טוקן

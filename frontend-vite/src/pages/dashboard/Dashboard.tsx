@@ -36,7 +36,7 @@ export const Dashboard: React.FC = () => {
                         {user.email}
                       </dd>
                       <dd className="text-sm text-gray-500">
-                        {user.role === 'OWNER' ? 'בעל חניות' : 'שוכר חניות'}
+                        {user.role === 'ADMIN' ? 'מנהל' : 'דייר'}
                       </dd>
                     </dl>
                   </div>
@@ -110,16 +110,16 @@ export const Dashboard: React.FC = () => {
                               onClick={() => navigate('/vaad-management')}
                               className="block w-full text-left px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded transition-colors font-medium"
                             >
-                               🏢 ניהול בקשות אישור חניות
+                                ניהול בקשות אישור חניות
                             </button>
                             <button 
                               onClick={() => navigate('/admin-dashboard')}
                               className="block w-full text-left px-3 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded transition-colors"
                             >
-                               📊 דשבורד ניהול
+                               דשבורד ניהול
                             </button>
                           </>
-                        ) : user.role === 'OWNER' ? (
+                        ) : user.role === 'RESIDENT' ? (
                           <>
                             <button 
                               onClick={() => navigate('/add-parking')}
@@ -173,19 +173,19 @@ export const Dashboard: React.FC = () => {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">0</div>
                 <div className="text-sm text-gray-600">
-                  {user.role === 'OWNER' ? 'חניות פעילות' : 'הזמנות פעילות'}
+                  {user.role === 'ADMIN' ? 'חניות פעילות' : 'הזמנות פעילות'}
                 </div>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">0</div>
                 <div className="text-sm text-gray-600">
-                  {user.role === 'OWNER' ? 'הזמנות השבוע' : 'הזמנות השבוע'}
+                  {user.role === 'ADMIN' ? 'הזמנות השבוע' : 'הזמנות השבוע'}
                 </div>
               </div>
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <div className="text-2xl font-bold text-yellow-600">0</div>
                 <div className="text-sm text-gray-600">
-                  {user.role === 'OWNER' ? 'הכנסות החודש' : 'הוצאות החודש'}
+                  {user.role === 'ADMIN' ? 'הכנסות החודש' : 'הוצאות החודש'}
                 </div>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">

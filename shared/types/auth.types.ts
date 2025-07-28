@@ -32,7 +32,7 @@ export interface RegisterRequest {
   lastName: string;
   phone?: string;
   buildingId: string;
-  role: UserRole.RENTER | UserRole.OWNER; // אדמין נוצר רק על ידי המערכת
+  role: typeof UserRole.RESIDENT; // כל המשתמשים נרשמים כדיירים, אדמין נוצר רק על ידי המערכת
 }
 
 /**

@@ -1,10 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
 import { createError } from './errorHandler';
 import { ENV } from '../config';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/database';
 
 // הרחבת ממשק Request כדי לכלול user
 export interface AuthenticatedRequest extends Request {

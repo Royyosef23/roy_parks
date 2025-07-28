@@ -47,11 +47,11 @@ export const RequestParkingClaim: React.FC = () => {
     }
   };
 
-  if (!user || user.role !== 'OWNER') {
+  if (!user || (user.role !== 'RESIDENT' && user.role !== 'ADMIN')) {
     return (
       <div className="max-w-2xl mx-auto py-6 px-4">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          רק בעלי חניות יכולים לבקש אישור חנייה
+          רק דיירים יכולים לבקש אישור חנייה
         </div>
       </div>
     );

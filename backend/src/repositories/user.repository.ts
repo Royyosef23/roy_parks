@@ -1,4 +1,4 @@
-import { User, Prisma } from '@prisma/client';
+import { User, Prisma, UserRole } from '@prisma/client';
 import { prisma } from '../config/database';
 import { BaseRepository, QueryOptions, QueryResult } from './base.repository';
 
@@ -134,7 +134,7 @@ export class UserRepository implements BaseRepository<User> {
   async findOwnersWithBuildings(): Promise<User[]> {
     return prisma.user.findMany({
       where: {
-        role: 'OWNER'
+        role: 'RESIDENT' as any
       },
       include: {
         ownedBuildings: {

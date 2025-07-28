@@ -75,8 +75,10 @@ export const useAuth = () => {
     
     // Computed
     isAdmin: user?.role === 'ADMIN',
-    isOwner: user?.role === 'OWNER',
-    isRenter: user?.role === 'RENTER',
+    isResident: user?.role === 'RESIDENT',
+    // Backward compatibility helpers
+    isOwner: user?.role === 'RESIDENT', // דייר יכול להיות גם משכיר
+    isRenter: user?.role === 'RESIDENT', // דייר יכול להיות גם שוכר
     
     // User info
     userName: user ? `${user.firstName} ${user.lastName}` : '',

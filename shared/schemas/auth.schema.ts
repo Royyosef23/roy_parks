@@ -23,7 +23,7 @@ export const RegisterSchema = z.object({
   buildingCode: z.string()
     .regex(/^[A-Z0-9]{1,4}$/, 'קוד בניין חייב להכיל 1-4 תווים (אותיות גדולות ומספרים)')
     .transform(val => val.toUpperCase()),
-  role: z.enum([UserRole.RENTER, UserRole.OWNER])
+  role: z.enum([UserRole.RESIDENT]).default(UserRole.RESIDENT)
 });
 
 /**

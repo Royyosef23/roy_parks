@@ -5,9 +5,9 @@
  */
 
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../prisma';
+import { prisma } from '../config/database';
 import { asyncHandler, createError } from '../middleware/errorHandler';
 // import { sendEmail } from '../services/emailService'; // זמנית מבוטל
 
@@ -39,7 +39,7 @@ const register = asyncHandler(async (req: Request, res: Response) => {
     throw createError('Missing required fields', 400);
   }
 
-  if (!['RENTER', 'OWNER'].includes(role)) {
+  if (!['RESIDENT', 'ADMIN'].includes(role)) {
     throw createError('Invalid role', 400);
   }
 
@@ -63,7 +63,7 @@ const register = asyncHandler(async (req: Request, res: Response) => {
       firstName,
       lastName,
       phone,
-      role: role || 'RENTER'
+      role: role || 'RESIDENT'
       // TODO: הוסף buildingCode כשהסכימה תתעדכן
     },
     select: {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
 
 // נתונים דמה לבינתיים
 const mockAvailableParkings = [
@@ -40,7 +39,6 @@ const mockAvailableParkings = [
 ];
 
 export const SearchParking: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchLocation, setSearchLocation] = useState('');
   const [searchDate, setSearchDate] = useState('');

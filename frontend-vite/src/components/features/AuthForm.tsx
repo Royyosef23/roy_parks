@@ -228,8 +228,7 @@ export const AuthForm: React.FC = () => {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">בחר תפקיד</option>
-                  <option value={UserRole.RENTER}>שוכר חניות</option>
-                  <option value={UserRole.OWNER}>בעל חניות</option>
+                  <option value={UserRole.RESIDENT}>דייר (יכול להשכיר ולשכור)</option>
                 </select>
                 {registerForm.formState.errors.role && (
                   <p className="mt-1 text-sm text-red-600">

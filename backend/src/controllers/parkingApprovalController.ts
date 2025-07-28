@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { asyncHandler } from '../middleware/errorHandler';
 import { createError } from '../middleware/errorHandler';
+import { prisma } from '../config/database';
 
 // הרחבת ממשק Request כדי לכלול user
 interface AuthenticatedRequest extends Request {
@@ -12,7 +12,35 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-const prisma = new PrismaClient();
+/**
+ * בדיקת יכולות משתמש דינמיות
+ */
+async function getUserCapabilities(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId }
+  });
+
+  if (!user) {
+    return {
+      canBookParking: false,
+      canOfferParking: false,
+      canApproveParking: false,
+      isAdmin: false
+    };
+  }
+
+  return {
+    // כל דייר מאומת יכול לשכור חניות ולהציע חניות
+    canBookParking: user.verified,
+    canOfferParking: user.verified,
+    
+    // רק Admin יכול לאשר חניות
+    canApproveParking: user.role === 'ADMIN',
+    
+    // זיהוי אדמין
+    isAdmin: user.role === 'ADMIN'
+  };
+}
 
 /**
  * אישור חנייה ע"י ועד הבית (Admin)
@@ -26,12 +54,10 @@ export const approveParkingSpot = asyncHandler(async (req: AuthenticatedRequest,
     throw createError('Authentication required', 401);
   }
 
-  // בדיקה שהמשתמש הוא ADMIN
-  const user = await prisma.user.findUnique({
-    where: { id: userId }
-  });
-
-  if (!user || user.role !== 'ADMIN') {
+  // בדיקה שהמשתמש יכול לאשר חניות
+  const capabilities = await getUserCapabilities(userId);
+  
+  if (!capabilities.canApproveParking) {
     throw createError('Only admins can approve parking spots', 403);
   }
 
@@ -90,12 +116,10 @@ export const getPendingApprovalSpots = asyncHandler(async (req: AuthenticatedReq
     throw createError('Authentication required', 401);
   }
 
-  // בדיקה שהמשתמש הוא ADMIN
-  const user = await prisma.user.findUnique({
-    where: { id: userId }
-  });
-
-  if (!user || user.role !== 'ADMIN') {
+  // בדיקה שהמשתמש יכול לראות חניות ממתינות
+  const capabilities = await getUserCapabilities(userId);
+  
+  if (!capabilities.canApproveParking) {
     throw createError('Only admins can view pending approvals', 403);
   }
 
@@ -190,5 +214,99 @@ export const setParkingSpotAvailability = asyncHandler(async (req: Authenticated
     success: true,
     message: `החנייה ${available ? 'זמינה' : 'לא זמינה'} עכשיו`,
     data: { parkingSpot: updatedSpot }
+  });
+});
+
+/**
+ * קבלת פרטי משתמש עם יכולות
+ * GET /api/v1/users/:id/capabilities
+ */
+export const getUserCapabilitiesEndpoint = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const requestingUserId = req.user?.id;
+
+  if (!requestingUserId) {
+    throw createError('Authentication required', 401);
+  }
+
+  // רק Admin או המשתמש עצמו יכולים לראות יכולות
+  const requestingUserCapabilities = await getUserCapabilities(requestingUserId);
+  if (!requestingUserCapabilities.isAdmin && requestingUserId !== id) {
+    throw createError('Access denied', 403);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+      verified: true,
+      createdAt: true
+    }
+  });
+
+  if (!user) {
+    throw createError('User not found', 404);
+  }
+
+  const capabilities = await getUserCapabilities(id);
+
+  res.json({
+    success: true,
+    data: {
+      user,
+      capabilities
+    }
+  });
+});
+
+/**
+ * עדכון סטטוס אימות דייר (Admin בלבד)
+ * PUT /api/v1/users/:id/verify-resident
+ */
+export const verifyResident = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { verified, apartmentNumber, floor } = req.body;
+  const adminId = req.user?.id;
+
+  if (!adminId) {
+    throw createError('Authentication required', 401);
+  }
+
+  // בדיקה שהמשתמש הוא Admin
+  const adminCapabilities = await getUserCapabilities(adminId);
+  if (!adminCapabilities.isAdmin) {
+    throw createError('Only admins can verify residents', 403);
+  }
+
+  // עדכון פרטי הדייר באמצעות raw SQL
+  await prisma.$executeRaw`
+    UPDATE users 
+    SET verified = ${Boolean(verified)}
+    ${apartmentNumber ? `, "apartmentNumber" = ${apartmentNumber}` : ''}
+    ${floor ? `, floor = ${parseInt(floor)}` : ''}
+    WHERE id = ${id}
+  `;
+
+  // קבלת המשתמש המעודכן
+  const updatedUser = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+      verified: true
+    }
+  });
+
+  res.json({
+    success: true,
+    message: `דייר ${verified ? 'אומת' : 'לא אומת'} בהצלחה`,
+    data: { user: updatedUser }
   });
 });

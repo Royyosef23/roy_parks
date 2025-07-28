@@ -19,9 +19,7 @@ import { ENV, initializeConfig, shutdownConfig } from './config';
 // ייבוא הroutes שלנו
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
-import buildingRoutes from './routes/buildings';
 import parkingRoutes from './routes/parking';
-import bookingRoutes from './routes/bookings';
 import parkingClaimsRoutes from './routes/parkingClaims';
 
 // ייבוא middleware-ים
@@ -78,9 +76,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/buildings', buildingRoutes);
 app.use('/api/v1/parking', parkingRoutes);
-app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/parking-claims', parkingClaimsRoutes);
 
 // נתיב לטיפול ב-404

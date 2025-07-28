@@ -3,20 +3,24 @@ import { BookingStatus, PaymentStatus } from '../constants/booking-status';
 /**
  * סוגי חניות
  */
-export enum SpotType {
-  REGULAR = 'REGULAR',
-  HANDICAPPED = 'HANDICAPPED',
-  ELECTRIC = 'ELECTRIC'
-}
+export const SpotType = {
+  REGULAR: 'REGULAR',
+  HANDICAPPED: 'HANDICAPPED',
+  ELECTRIC: 'ELECTRIC'
+} as const;
+
+export type SpotType = (typeof SpotType)[keyof typeof SpotType];
 
 /**
  * גדלי חניות
  */
-export enum SpotSize {
-  SMALL = 'SMALL',
-  MEDIUM = 'MEDIUM',
-  LARGE = 'LARGE'
-}
+export const SpotSize = {
+  SMALL: 'SMALL',
+  MEDIUM: 'MEDIUM',
+  LARGE: 'LARGE'
+} as const;
+
+export type SpotSize = (typeof SpotSize)[keyof typeof SpotSize];
 
 /**
  * הזמנה בסיסית

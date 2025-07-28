@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { asyncHandler } from '../middleware/errorHandler';
 import { createError } from '../middleware/errorHandler';
+import { prisma } from '../config/database';
 
 // הרחבת ממשק Request כדי לכלול user
 interface AuthenticatedRequest extends Request {
@@ -11,8 +11,6 @@ interface AuthenticatedRequest extends Request {
     role: string;
   };
 }
-
-const prisma = new PrismaClient();
 
 /**
  * הגשת בקשה לאישור חנייה
@@ -26,13 +24,13 @@ export const submitParkingClaim = asyncHandler(async (req: AuthenticatedRequest,
     throw createError('Authentication required', 401);
   }
 
-  // בדיקה שהמשתמש הוא OWNER
+  // בדיקה שהמשתמש הוא RESIDENT (דייר)
   const user = await prisma.user.findUnique({
     where: { id: userId }
   });
 
-  if (!user || user.role !== 'OWNER') {
-    throw createError('Only building owners can submit parking claims', 403);
+  if (!user || user.role !== ('RESIDENT' as any)) {
+    throw createError('Only building residents can submit parking claims', 403);
   }
 
   // בדיקה שהמשתמש עדיין לא הגיש בקשה

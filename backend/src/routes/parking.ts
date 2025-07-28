@@ -13,9 +13,11 @@ import {
 import {
   approveParkingSpot,
   getPendingApprovalSpots,
-  setParkingSpotAvailability
+  setParkingSpotAvailability,
+  getUserCapabilitiesEndpoint,
+  verifyResident
 } from '../controllers/parkingApprovalController';
-import { authenticate, requireRole } from '../middleware/auth';
+import { authenticate, requireRole, requireVerified } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 
 const router = Router();
@@ -33,10 +35,10 @@ router.use(authenticate);
 /**
  * @route   POST /api/v1/parking-spots
  * @desc    הוספת חנייה חדשה
- * @access  Private (OWNER only)
+ * @access  Private (Verified residents only)
  */
 router.post('/', 
-  requireRole(['OWNER']),
+  requireVerified,
   validateRequest('addParkingSpot'),
   addParkingSpot
 );
@@ -44,20 +46,20 @@ router.post('/',
 /**
  * @route   GET /api/v1/parking-spots/my-spots
  * @desc    קבלת החניות שלי
- * @access  Private (OWNER only)
+ * @access  Private (Verified residents only)
  */
 router.get('/my-spots', 
-  requireRole(['OWNER']),
+  requireVerified,
   getMyParkingSpots
 );
 
 /**
  * @route   PUT /api/v1/parking-spots/:id
  * @desc    עדכון חנייה
- * @access  Private (OWNER only)
+ * @access  Private (Verified residents only)
  */
 router.put('/:id', 
-  requireRole(['OWNER']),
+  requireVerified,
   validateRequest('updateParkingSpot'),
   updateParkingSpot
 );
@@ -65,10 +67,10 @@ router.put('/:id',
 /**
  * @route   DELETE /api/v1/parking-spots/:id
  * @desc    מחיקת חנייה
- * @access  Private (OWNER only)
+ * @access  Private (Verified residents only)
  */
 router.delete('/:id', 
-  requireRole(['OWNER']),
+  requireVerified,
   deleteParkingSpot
 );
 
@@ -95,11 +97,30 @@ router.put('/:id/approve',
 /**
  * @route   POST /api/v1/parking-spots/:id/availability
  * @desc    הגדרת זמינות חנייה
- * @access  Private (OWNER only)
+ * @access  Private (Verified residents only)
  */
 router.post('/:id/availability', 
-  requireRole(['OWNER']),
+  requireVerified,
   setParkingSpotAvailability
+);
+
+/**
+ * @route   GET /api/v1/users/:id/capabilities
+ * @desc    קבלת יכולות משתמש
+ * @access  Private (ADMIN or self)
+ */
+router.get('/users/:id/capabilities', 
+  getUserCapabilitiesEndpoint
+);
+
+/**
+ * @route   PUT /api/v1/users/:id/verify-resident
+ * @desc    אימות דייר ע"י ועד הבית
+ * @access  Private (ADMIN only)
+ */
+router.put('/users/:id/verify-resident', 
+  requireRole(['ADMIN']),
+  verifyResident
 );
 
 export default router;

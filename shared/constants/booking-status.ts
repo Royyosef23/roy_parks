@@ -1,21 +1,25 @@
 /**
  * סטטוסים של הזמנות
  */
-export enum BookingStatus {
-  PENDING = 'PENDING',         // ממתין לאישור ועד הבית
-  APPROVED = 'APPROVED',       // אושר על ידי ועד הבית
-  COMPLETED = 'COMPLETED',     // הושלם בהצלחה
-  CANCELLED = 'CANCELLED'      // בוטל
-}
+export const BookingStatus = {
+  PENDING: 'PENDING',         // ממתין לאישור ועד הבית
+  APPROVED: 'APPROVED',       // אושר על ידי ועד הבית
+  COMPLETED: 'COMPLETED',     // הושלם בהצלחה
+  CANCELLED: 'CANCELLED'      // בוטל
+} as const;
+
+export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
 
 /**
  * סטטוסים של תשלום
  */
-export enum PaymentStatus {
-  PENDING = 'PENDING',         // ממתין לתשלום
-  PAID = 'PAID',              // שולם
-  REFUNDED = 'REFUNDED'       // הוחזר
-}
+export const PaymentStatus = {
+  PENDING: 'PENDING',         // ממתין לתשלום
+  PAID: 'PAID',              // שולם
+  REFUNDED: 'REFUNDED'       // הוחזר
+} as const;
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
 /**
  * מעברים מותרים בין סטטוסים

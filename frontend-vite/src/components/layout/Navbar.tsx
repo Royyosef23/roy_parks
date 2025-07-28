@@ -25,7 +25,7 @@ export const Navbar: React.FC = () => {
                   שלום, {user.firstName} {user.lastName}
                 </span>
                 <span className="text-blue-200 text-sm">
-                  ({user.role === 'OWNER' ? 'בעל חניות' : 'שוכר'})
+                  ({user.role === 'ADMIN' ? 'מנהל' : 'דייר'})
                 </span>
                 <button
                   onClick={handleLogout}

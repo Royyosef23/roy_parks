@@ -19,7 +19,7 @@ describe('Auth API Tests', () => {
         firstName: 'Test',
         lastName: 'User',
         phone: '0541234567',
-        role: 'OWNER',
+        role: 'RESIDENT',
         buildingCode: 'PADOVA32'
       };
 
@@ -42,7 +42,7 @@ describe('Auth API Tests', () => {
         firstName: 'Test',
         lastName: 'User',
         phone: '0541234567',
-        role: 'OWNER',
+        role: 'RESIDENT',
         buildingCode: 'PADOVA32'
       };
 
@@ -61,7 +61,7 @@ describe('Auth API Tests', () => {
         firstName: 'Test',
         lastName: 'User',
         phone: '0541234567',
-        role: 'OWNER',
+        role: 'RESIDENT',
         buildingCode: 'PADOVA32'
       };
 
@@ -85,7 +85,7 @@ describe('Auth API Tests', () => {
           firstName: 'Login',
           lastName: 'Test',
           phone: '0541234567',
-          role: 'OWNER',
+          role: 'RESIDENT',
           buildingCode: 'PADOVA32'
         });
     });

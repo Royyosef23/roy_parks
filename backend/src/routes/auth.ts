@@ -21,7 +21,7 @@ const router = Router();
  *   "firstName": "John",
  *   "lastName": "Doe",
  *   "phone": "052-1234567",
- *   "role": "RENTER" | "OWNER"
+ *   "role": "RESIDENT" | "ADMIN"
  * }
  */
 router.post('/register', validateRegister, authController.register);

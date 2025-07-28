@@ -93,10 +93,10 @@ const registerSchema = Joi.object({
     }),
   
   role: Joi.string()
-    .valid('RENTER', 'OWNER')
-    .default('RENTER')
+    .valid('RESIDENT', 'ADMIN')
+    .default('RESIDENT')
     .messages({
-      'any.only': 'Role must be either RENTER or OWNER'
+      'any.only': 'Role must be either RESIDENT or ADMIN'
     }),
   
   buildingCode: Joi.string()

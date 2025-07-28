@@ -28,7 +28,7 @@ describe('BookingService', () => {
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      role: 'RENTER' as const
+      role: 'RESIDENT' as const
     };
 
     const mockSpot = {
@@ -43,8 +43,8 @@ describe('BookingService', () => {
     const bookingData = {
       userId: 'user1',
       spotId: 'spot1',
-      startDate: new Date('2025-07-28T10:00:00Z'),
-      endDate: new Date('2025-07-28T12:00:00Z'),
+      startDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // מחר
+      endDate: new Date(Date.now() + 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000), // מחר + 2 שעות
       notes: 'Test booking'
     };
 

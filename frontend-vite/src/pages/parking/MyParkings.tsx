@@ -32,11 +32,11 @@ export const MyParkings: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  if (!user || user.role !== 'OWNER') {
+  if (!user || (user.role !== 'RESIDENT' && user.role !== 'ADMIN')) {
     return (
       <div className="max-w-6xl mx-auto py-6 px-4">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          רק בעלי חניות יכולים לראות את הדף הזה
+          רק דיירים מאומתים יכולים לראות את הדף הזה
         </div>
       </div>
     );

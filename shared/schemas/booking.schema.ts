@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { BookingStatus } from '../constants/booking-status';
-import { POINTS_PER_HOUR, MIN_BOOKING_HOURS, MAX_BOOKING_HOURS } from '../constants/point-values';
+import { MIN_BOOKING_HOURS, MAX_BOOKING_HOURS } from '../constants/point-values';
 
 /**
  * ולידציה של תאריך ושעה
